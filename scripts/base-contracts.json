@@ -1,0 +1,1647 @@
+[
+  {
+    "$defs": {
+      "Token": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]{1,96}$"
+      },
+      "RequestId": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9_-]{16,64}$"
+      },
+      "Key": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "Tile": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+          },
+          "y": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "additionalProperties": false
+      },
+      "Point": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "additionalProperties": false
+      },
+      "Region": {
+        "type": "object",
+        "properties": {
+          "x0": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+          },
+          "y0": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+          },
+          "x1": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+          },
+          "y1": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "x0",
+          "y0",
+          "x1",
+          "y1"
+        ],
+        "additionalProperties": false
+      },
+      "WorldRect": {
+        "type": "object",
+        "properties": {
+          "x0": {
+            "type": "number"
+          },
+          "y0": {
+            "type": "number"
+          },
+          "x1": {
+            "type": "number"
+          },
+          "y1": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "x0",
+          "y0",
+          "x1",
+          "y1"
+        ],
+        "additionalProperties": false
+      },
+      "Camera": {
+        "type": "object",
+        "properties": {
+          "centerWorld": {
+            "$ref": "#/$defs/Point"
+          },
+          "zoom": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "visibleWorld": {
+            "$ref": "#/$defs/WorldRect"
+          },
+          "visibleTiles": {
+            "$ref": "#/$defs/Region"
+          }
+        },
+        "required": [
+          "centerWorld",
+          "zoom",
+          "visibleWorld",
+          "visibleTiles"
+        ],
+        "additionalProperties": false
+      },
+      "Kind": {
+        "enum": [
+          "belt",
+          "underground",
+          "hub",
+          "miner",
+          "processor",
+          "ejector",
+          "other",
+          "unknown"
+        ]
+      },
+      "Group": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "$ref": "#/$defs/Key"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "key",
+          "count"
+        ],
+        "additionalProperties": false
+      },
+      "Port": {
+        "type": "object",
+        "properties": {
+          "tile": {
+            "$ref": "#/$defs/Tile"
+          },
+          "face": {
+            "enum": [
+              "N",
+              "E",
+              "S",
+              "W"
+            ]
+          },
+          "role": {
+            "enum": [
+              "in",
+              "out"
+            ]
+          },
+          "peer": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Tile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "tile",
+          "face",
+          "role",
+          "peer"
+        ],
+        "additionalProperties": false
+      },
+      "Entity": {
+        "type": "object",
+        "properties": {
+          "row": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tile": {
+            "$ref": "#/$defs/Tile"
+          },
+          "kind": {
+            "$ref": "#/$defs/Kind"
+          },
+          "signature": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 192
+          },
+          "rotation": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+          },
+          "rotationVariant": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647
+          },
+          "ports": {
+            "anyOf": [
+              {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "$ref": "#/$defs/Port"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "row",
+          "tile",
+          "kind",
+          "signature",
+          "rotation",
+          "rotationVariant",
+          "ports"
+        ],
+        "additionalProperties": false
+      },
+      "Patch": {
+        "type": "object",
+        "properties": {
+          "row": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "chunk": {
+            "$ref": "#/$defs/Tile"
+          },
+          "centerTile": {
+            "$ref": "#/$defs/Point"
+          },
+          "kind": {
+            "enum": [
+              "shape",
+              "color",
+              "unknown"
+            ]
+          },
+          "key": {
+            "$ref": "#/$defs/Key"
+          },
+          "size": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "row",
+          "chunk",
+          "centerTile",
+          "kind",
+          "key",
+          "size"
+        ],
+        "additionalProperties": false
+      },
+      "Summary": {
+        "type": "object",
+        "properties": {
+          "firstCursor": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Token"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mode": {
+            "const": "summary"
+          },
+          "view": {
+            "$ref": "#/$defs/Token"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Group"
+            },
+            "minItems": 0,
+            "maxItems": 24
+          },
+          "other": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bbox": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Region"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "firstCursor",
+          "mode",
+          "view",
+          "total",
+          "groups",
+          "other",
+          "bbox"
+        ],
+        "additionalProperties": false
+      },
+      "Measure": {
+        "type": "object",
+        "properties": {
+          "tile": {
+            "$ref": "#/$defs/Tile"
+          },
+          "verdict": {
+            "enum": [
+              "blocked_candidate",
+              "starved_candidate",
+              "moving",
+              "incomplete"
+            ]
+          },
+          "supplySamples": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "refusedSamples": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "passedDelta": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hubDeliveredDelta": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "required": [
+          "tile",
+          "verdict",
+          "supplySamples",
+          "refusedSamples",
+          "passedDelta",
+          "hubDeliveredDelta",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "Belt": {
+        "enum": [
+          "N",
+          "E",
+          "S",
+          "W"
+        ]
+      },
+      "Op": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "enum": [
+              "place_straight",
+              "replace_straight"
+            ]
+          },
+          "tile": {
+            "$ref": "#/$defs/Tile"
+          },
+          "to": {
+            "$ref": "#/$defs/Belt"
+          }
+        },
+        "required": [
+          "op",
+          "tile",
+          "to"
+        ],
+        "additionalProperties": false
+      },
+      "Cell": {
+        "type": "object",
+        "properties": {
+          "tile": {
+            "$ref": "#/$defs/Tile"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Belt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "after": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Belt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "role": {
+            "enum": [
+              "requested",
+              "neighbor"
+            ]
+          }
+        },
+        "required": [
+          "tile",
+          "before",
+          "after",
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "Receipt": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "$ref": "#/$defs/RequestId"
+          },
+          "action": {
+            "enum": [
+              "apply",
+              "restore"
+            ]
+          },
+          "state": {
+            "enum": [
+              "prepared",
+              "executing",
+              "applied",
+              "restored",
+              "partial",
+              "unknown",
+              "aborted"
+            ]
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Token"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "completed": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 8
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verified": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "requestId",
+          "action",
+          "state",
+          "snapshot",
+          "completed",
+          "verified"
+        ],
+        "additionalProperties": false
+      },
+      "Fault": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "enum": [
+              "CDP_UNREACHABLE",
+              "TARGET_INVALID",
+              "NOT_IN_GAME",
+              "IDENTITY_UNKNOWN",
+              "SAVE_ID_MISMATCH",
+              "SESSION_CHANGED",
+              "REGION_INVALID",
+              "REGION_OUT_OF_BOUNDS",
+              "CURSOR_INVALID",
+              "OUTPUT_LIMIT",
+              "CAPABILITY_UNVERIFIED",
+              "SAMPLE_INTERRUPTED",
+              "CAPTURE_FAILED",
+              "READ_ONLY",
+              "PLAN_STALE",
+              "CONFLICT",
+              "SNAPSHOT_FAILED",
+              "PARTIAL_WRITE",
+              "OUTCOME_UNKNOWN",
+              "REQUEST_UNKNOWN",
+              "RESTORE_CONFLICT",
+              "BUSY"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "hint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "inGame": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requestId": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RequestId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Token"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "hint",
+          "inGame",
+          "requestId",
+          "snapshot"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  {
+    "name": "status",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "properties": {
+                "inGame": {
+                  "const": true
+                },
+                "internalId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32
+                },
+                "level": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "epoch": {
+                  "$ref": "#/$defs/Token"
+                },
+                "entityCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "loadedChunks": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "camera": {
+                  "$ref": "#/$defs/Camera"
+                },
+                "mode": {
+                  "enum": [
+                    "observe",
+                    "write"
+                  ]
+                },
+                "capabilities": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "flow",
+                      "screenshot",
+                      "preview",
+                      "apply",
+                      "restore"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 5
+                }
+              },
+              "required": [
+                "inGame",
+                "internalId",
+                "name",
+                "level",
+                "epoch",
+                "entityCount",
+                "loadedChunks",
+                "camera",
+                "mode",
+                "capabilities"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "entities",
+    "inputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "summary"
+            },
+            "region": {
+              "$ref": "#/$defs/Region"
+            },
+            "kind": {
+              "$ref": "#/$defs/Kind"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "region"
+            },
+            "region": {
+              "$ref": "#/$defs/Region"
+            },
+            "kind": {
+              "$ref": "#/$defs/Kind"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64
+            }
+          },
+          "required": [
+            "mode",
+            "region"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "page"
+            },
+            "region": {
+              "$ref": "#/$defs/Region"
+            },
+            "kind": {
+              "$ref": "#/$defs/Kind"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "page"
+            },
+            "cursor": {
+              "$ref": "#/$defs/Token"
+            }
+          },
+          "required": [
+            "mode",
+            "cursor"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/Summary"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "region",
+                        "page"
+                      ]
+                    },
+                    "view": {
+                      "$ref": "#/$defs/Token"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "rows": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/$defs/Entity"
+                      },
+                      "minItems": 0,
+                      "maxItems": 64
+                    },
+                    "next": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/$defs/Token"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "mode",
+                    "view",
+                    "total",
+                    "rows",
+                    "next"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "resources",
+    "inputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "summary"
+            },
+            "region": {
+              "$ref": "#/$defs/Region"
+            },
+            "kind": {
+              "enum": [
+                "shape",
+                "color",
+                "unknown"
+              ]
+            },
+            "key": {
+              "$ref": "#/$defs/Key"
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "region"
+            },
+            "region": {
+              "$ref": "#/$defs/Region"
+            },
+            "kind": {
+              "enum": [
+                "shape",
+                "color",
+                "unknown"
+              ]
+            },
+            "key": {
+              "$ref": "#/$defs/Key"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64
+            }
+          },
+          "required": [
+            "mode",
+            "region"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "page"
+            },
+            "region": {
+              "$ref": "#/$defs/Region"
+            },
+            "kind": {
+              "enum": [
+                "shape",
+                "color",
+                "unknown"
+              ]
+            },
+            "key": {
+              "$ref": "#/$defs/Key"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64
+            }
+          },
+          "required": [
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "page"
+            },
+            "cursor": {
+              "$ref": "#/$defs/Token"
+            }
+          },
+          "required": [
+            "mode",
+            "cursor"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/Summary"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "region",
+                        "page"
+                      ]
+                    },
+                    "view": {
+                      "$ref": "#/$defs/Token"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "rows": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/$defs/Patch"
+                      },
+                      "minItems": 0,
+                      "maxItems": 64
+                    },
+                    "next": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/$defs/Token"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "mode",
+                    "view",
+                    "total",
+                    "rows",
+                    "next"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "sample_flow",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "region": {
+          "$ref": "#/$defs/Region"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Tile"
+          },
+          "minItems": 1,
+          "maxItems": 4
+        },
+        "seconds": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 20
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 12
+        }
+      },
+      "required": [
+        "region",
+        "points"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "screenshot",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "properties": {
+                "width": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1280
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1280
+                },
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 524288
+                },
+                "mimeType": {
+                  "const": "image/png"
+                }
+              },
+              "required": [
+                "width",
+                "height",
+                "bytes",
+                "mimeType"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "preview_belts",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "region": {
+          "$ref": "#/$defs/Region"
+        },
+        "ops": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Op"
+          },
+          "minItems": 1,
+          "maxItems": 8
+        }
+      },
+      "required": [
+        "region",
+        "ops"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "properties": {
+                "plan": {
+                  "$ref": "#/$defs/Token"
+                },
+                "epoch": {
+                  "$ref": "#/$defs/Token"
+                },
+                "validForSeconds": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 60
+                },
+                "cells": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Cell"
+                  },
+                  "minItems": 1,
+                  "maxItems": 32
+                }
+              },
+              "required": [
+                "plan",
+                "epoch",
+                "validForSeconds",
+                "cells"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "apply_belts",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "plan": {
+          "$ref": "#/$defs/Token"
+        },
+        "requestId": {
+          "$ref": "#/$defs/RequestId"
+        }
+      },
+      "required": [
+        "plan",
+        "requestId"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Receipt"
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "operation_status",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "$ref": "#/$defs/RequestId"
+        }
+      },
+      "required": [
+        "requestId"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Receipt"
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "restore_snapshot",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "snapshot": {
+          "$ref": "#/$defs/Token"
+        },
+        "applyRequestId": {
+          "$ref": "#/$defs/RequestId"
+        },
+        "requestId": {
+          "$ref": "#/$defs/RequestId"
+        }
+      },
+      "required": [
+        "snapshot",
+        "applyRequestId",
+        "requestId"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "$ref": "#/$defs/Receipt"
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "game",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "op": {
+          "enum": [
+            "hub",
+            "place",
+            "remove",
+            "upgrade",
+            "catalog",
+            "eval",
+            "speeds",
+            "building",
+            "flow",
+            "path",
+            "blueprint",
+            "sample",
+            "preview",
+            "applyBelts",
+            "restoreTiles",
+            "route"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "code": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000
+              },
+              "building": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              },
+              "rotation": {
+                "type": "integer"
+              },
+              "rotationVariant": {
+                "type": "integer"
+              },
+              "variant": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "direction": {
+                "enum": [
+                  "N",
+                  "E",
+                  "S",
+                  "W"
+                ]
+              },
+              "from": {
+                "enum": [
+                  "N",
+                  "E",
+                  "S",
+                  "W"
+                ]
+              },
+              "to": {
+                "enum": [
+                  "N",
+                  "E",
+                  "S",
+                  "W"
+                ]
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "route": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/Tile"
+          }
+        },
+        "routeCode": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "tiles": {
+          "type": "array",
+          "maxItems": 512,
+          "items": {
+            "$ref": "#/$defs/Tile"
+          }
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "code": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "region": {
+          "$ref": "#/$defs/Region"
+        },
+        "blueprintMode": {
+          "enum": [
+            "capture",
+            "paste"
+          ]
+        },
+        "blueprint": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000
+              },
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "rotation": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "code",
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dx": {
+          "type": "integer"
+        },
+        "dy": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "data"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "$ref": "#/$defs/Fault"
+            }
+          },
+          "required": [
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+]

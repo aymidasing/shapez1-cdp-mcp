@@ -1,0 +1,15 @@
+node_modules/
+.npm-cache/
+dist/
+
+# 本地环境与个人配置
+.codex/
+
+# 个人工厂记录与历史设计稿
+mam/
+01-takeover-plan.md
+02-mcp-design.md
+
+# 存档转储与工作区归档
+*.json.gz
+.trash/
